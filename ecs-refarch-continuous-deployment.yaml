@@ -74,7 +74,7 @@ Resources:
   Cluster:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/ecs-cluster.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/ecs-cluster.yaml
       Parameters:
         ClusterSize: !Ref ClusterSize
         SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
@@ -84,7 +84,7 @@ Resources:
   DeploymentPipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/deployment-pipeline.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/deployment-pipeline.yaml
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         GitHubUser: !Ref GitHubUser
@@ -102,7 +102,7 @@ Resources:
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/load-balancer.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/load-balancer.yaml
       Parameters:
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
@@ -110,7 +110,7 @@ Resources:
   Service:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/service.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/service.yaml
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
@@ -118,7 +118,7 @@ Resources:
   CanaryService:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/canary-service.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/canary-service.yaml
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         TargetGroup: !GetAtt LoadBalancer.Outputs.CanaryTargetGroup
@@ -126,7 +126,7 @@ Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/vpc.yaml
+      TemplateURL: https://raw.githubusercontent.com/dstroppa/ecs-refarch-continuous-deployment/templates/vpc.yaml
       Parameters:
         Name: !Ref AWS::StackName
         VpcCIDR: 10.215.0.0/16
