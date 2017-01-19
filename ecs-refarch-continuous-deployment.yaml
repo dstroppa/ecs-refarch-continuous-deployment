@@ -24,6 +24,18 @@ Parameters:
     Description: >
       Token for the user specified above. (https://github.com/settings/tokens)
 
+  ClusterSize:
+    Type: Number
+    Default: 4
+
+  ServiceDesiredCapacity:
+    Type: Number
+    Default: 4
+
+  CanaryServiceDesiredCapacity:
+    Type: Number
+    Default: 1
+
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -36,6 +48,12 @@ Metadata:
         default: "Branch"
       GitHubToken:
         default: "Personal Access Token"
+      ClusterSize:
+        default: "Cluster Size"
+      ServiceDesiredCapacity:
+        default: "Service Desired Capacity"
+      CanaryServiceDesiredCapacity:
+        default: "Canary Service Desired Capacity"
     ParameterGroups:
       - Label:
           default: GitHub Configuration
@@ -44,6 +62,12 @@ Metadata:
           - GitHubBranch
           - GitHubUser
           - GitHubToken
+      - Label:
+          default: ECS Cluster & Service Configuration
+        Parameters:
+          - ClusterSize
+          - ServiceDesiredCapacity
+          - CanaryServiceDesiredCapacity
 
 
 Resources:
@@ -52,6 +76,7 @@ Resources:
     Properties:
       TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/ecs-cluster.yaml
       Parameters:
+        ClusterSize: !Ref ClusterSize
         SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
@@ -66,7 +91,10 @@ Resources:
         GitHubToken: !Ref GitHubToken
         GitHubRepo: !Ref GitHubRepo
         GitHubBranch: !Ref GitHubBranch
+        ServiceDesiredCapacity: !Ref ServiceDesiredCapacity
+        CanaryServiceDesiredCapacity: !Ref CanaryServiceDesiredCapacity
         TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        CanaryTargetGroup: !GetAtt LoadBalancer.Outputs.CanaryTargetGroup
         Repository: !GetAtt Service.Outputs.Repository
         StackName: !GetAtt Service.Outputs.StackName
         TemplateBucket: ecs-refarch-continuous-deployment
@@ -86,6 +114,14 @@ Resources:
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+
+  CanaryService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/canary-service.yaml
+      Parameters:
+        Cluster: !GetAtt Cluster.Outputs.ClusterName
+        TargetGroup: !GetAtt LoadBalancer.Outputs.CanaryTargetGroup
 
   VPC:
     Type: AWS::CloudFormation::Stack

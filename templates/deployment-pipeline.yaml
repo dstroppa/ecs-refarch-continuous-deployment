@@ -11,7 +11,16 @@ Parameters:
   GitHubUser:
     Type: String
 
+  ServiceDesiredCapacity:
+    Type: Number
+
+  CanaryServiceDesiredCapacity:
+    Type: Number
+
   TargetGroup:
+    Type: String
+
+  CanaryTargetGroup:
     Type: String
 
   StackName:
@@ -226,6 +235,32 @@ Resources:
               OutputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
+        - Name: Canary
+          Actions:
+            - Name: Canary
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ChangeSetName: Canary
+                ActionMode: CREATE_UPDATE
+                StackName: !Ref StackName
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplatePath: Template::templates/canary-service.yaml
+                RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                ParameterOverrides: !Sub |
+                  {
+                    "Tag" : { "Fn::GetParam" : [ "BuildOutput", "build.json", "tag" ] },
+                    "DesiredCount": "${CanaryServiceDesiredCapacity}",
+                    "Cluster": "${Cluster}",
+                    "TargetGroup": "${CanaryTargetGroup}"
+                  }
+              InputArtifacts:
+                - Name: Template
+                - Name: BuildOutput
+              RunOrder: 1
         - Name: Deploy
           Actions:
             - Name: Deploy
@@ -244,7 +279,7 @@ Resources:
                 ParameterOverrides: !Sub |
                   {
                     "Tag" : { "Fn::GetParam" : [ "BuildOutput", "build.json", "tag" ] },
-                    "DesiredCount": "1",
+                    "DesiredCount": "${ServiceDesiredCapacity}",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}"
                   }

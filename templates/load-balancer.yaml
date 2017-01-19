@@ -34,8 +34,28 @@ Resources:
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
+        - Type: forward
+          TargetGroupArn: !Ref CanaryTargetGroup
 
   TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: LoadBalancer
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
+  CanaryTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: LoadBalancer
     Properties:
@@ -65,11 +85,16 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
+        - TargetGroupArn: !Ref CanaryTargetGroup
+          Type: forward
 
 
 Outputs:
   TargetGroup:
     Value: !Ref TargetGroup
+
+  CanaryTargetGroup:
+    Value: !Ref CanaryTargetGroup
 
   ServiceUrl:
     Description: URL of the load balancer for the sample service.
